@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>パスキー登録デモ</title>
+</head>
+<body>
+  <h1>パスキー登録デモ</h1>
+
+  <form id="register-form">
+    <label for="username">ユーザー名:</label>
+    <input type="text" id="username" name="username" required>
+    <button type="submit">パスキー登録</button>
+  </form>
+
+  <pre id="output"></pre>
+
+  <script>
+    const form = document.getElementById('register-form');
+    const output = document.getElementById('output');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+
+      try {
+        // ① サーバーに登録開始リクエスト
+        const resp = await fetch('/register/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username })
+        });
+        const options = await resp.json();
+
+        // JSON の ArrayBuffer 変換
+        options.challenge = Uint8Array.from(atob(options.challenge), c => c.charCodeAt(0));
+
+        // ② WebAuthn APIでCredential作成
+        const credential = await navigator.credentials.create({ publicKey: options });
+
+        // ③ サーバーに登録完了リクエスト
+        const attResp = await fetch('/register/finish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(credential)
+        });
+        const result = await attResp.json();
+
+        output.textContent = JSON.stringify(result, null, 2);
+
+      } catch (err) {
+        console.error(err);
+        output.textContent = 'エラー: ' + err;
+      }
+    });
+  </script>
+</body>
+</html>

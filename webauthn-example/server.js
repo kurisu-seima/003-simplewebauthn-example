@@ -1,7 +1,19 @@
+// requireでExpressモジュールを読み込む（importと同じ）
 const express = require('express');
-const { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } = require('@simplewebauthn/server');
+const simpleWebAuthn = require('@simplewebauthn/server');
 
+// ユーザー登録（クレデンシャル作成）時にブラウザに返すオプションを生成
+const generateRegistrationOptions = simpleWebAuthn.generateRegistrationOptions;
+// 登録時の署名や証明書の検証
+const verifyRegistrationResponse = simpleWebAuthn.verifyRegistrationResponse;
+// 認証（ログイン）時にブラウザに返すオプションを生成
+const generateAuthenticationOptions = simpleWebAuthn.generateAuthenticationOptions;
+// 認証時の署名検証
+const verifyAuthenticationResponse = simpleWebAuthn.verifyAuthenticationResponse;
+
+// Expressのインスタンスを生成（ルーティング処理やリクエストごとの処理を定義できる）
 const app = express();
+// JSON形式のリクエストボディを自動で解析する
 app.use(express.json());
 
 let users = {};        // ユーザー情報（公開鍵などを簡易保存）
